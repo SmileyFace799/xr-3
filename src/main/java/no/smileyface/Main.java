@@ -1,5 +1,6 @@
 package no.smileyface;
 
+import java.util.Arrays;
 import javax.swing.*; // Classes JFrame og JPanel
 
 import static com.jogamp.opengl.GL2.*;
@@ -19,6 +20,17 @@ import org.slf4j.LoggerFactory;
 public class Main extends GLCanvas implements GLEventListener{
 	private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 	private static final float CAMERA_DISTANCE = 20;
+
+	private static final double[][] POINTS = new double[][]{
+			new double[]{0, 2, 0}, // p0
+			new double[]{1.5, 1.5, 0}, // p1
+			new double[]{2, 0, 0}, // p2
+			new double[]{1.5, -1.5, 0}, // p3
+			new double[]{0, -2, 0}, // p4
+			new double[]{-1.5, -1.5, 0}, // p5
+			new double[]{-2, 0, 0}, // p6
+			new double[]{-1.5, 1.5, 0}, // p7
+	};
 
     	/* The interface GLEventListener contains the 5 methods that have to be implemented:
                 - display(GLDrawable drawable)
@@ -67,16 +79,9 @@ public class Main extends GLCanvas implements GLEventListener{
 		//lag til TOMAS
 	}
 
-	private void drawPoints(GL2 gl, int mode) {
+	private static void drawPoints(GL2 gl, int mode) {
 		gl.glBegin(mode);
-		gl.glVertex3f(0, 2, 0); // p0
-		gl.glVertex3f(1.5f, 1.5f, 0); // p1
-		gl.glVertex3f(2, 0, 0); // p2
-		gl.glVertex3f(1.5f, -1.5f, 0); // p3
-		gl.glVertex3f(0, -2, 0); // p4
-		gl.glVertex3f(-1.5f, -1.5f, 0); // p5
-		gl.glVertex3f(-2, 0, 0); // p6
-		gl.glVertex3f(-1.5f, 1.5f, 0); // p7
+		Arrays.stream(POINTS).forEach(point -> gl.glVertex3dv(point, 0));
 		gl.glEnd();
 	}
 
@@ -90,7 +95,7 @@ public class Main extends GLCanvas implements GLEventListener{
 		gl.glLineWidth(2.5f);
 
 		gl.glTranslatef(-7.5f, 5, 0);
-		gl.glColor3f(0,0,1); // Set the Color to Red
+		gl.glColor3f(0,0,1);
 		drawPoints(gl, GL_POINTS);
 
 		gl.glTranslatef(5, 0, 0);
@@ -138,10 +143,6 @@ public class Main extends GLCanvas implements GLEventListener{
 		LOGGER.info("display()");
 		drawGLScene(glDrawable); // Calls drawGLScene
 
-	}
-
-	public void displayChanged(GLAutoDrawable glDrawable, boolean b, boolean b1) {
-		//  Must be present due to the GLEventListener interface
 	}
 
 	public static void main(String[] args){
