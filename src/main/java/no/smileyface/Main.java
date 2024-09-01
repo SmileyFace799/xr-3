@@ -1,6 +1,8 @@
 package no.smileyface;
 
+import com.jogamp.opengl.util.gl2.GLUT;
 import java.util.Arrays;
+import java.util.stream.Stream;
 import javax.swing.*; // Classes JFrame og JPanel
 
 import static com.jogamp.opengl.GL2.*;
@@ -44,13 +46,16 @@ public class Main extends GLCanvas implements GLEventListener{
                 -dispose(GLAutoDrawable d)
       */
 
-	private final transient GLU glu = new GLU();
+	private final transient GLU glu;
+	private final transient GLUT glut;
 
 	/**
 	 * Constructor.
 	 */
 	public Main(GLCapabilities c){
 		super(c);
+		this.glu = new GLU();
+		this.glut = new GLUT();
 		this.addGLEventListener(this);
 
 	}
@@ -63,7 +68,7 @@ public class Main extends GLCanvas implements GLEventListener{
 
 		gl.glMatrixMode(GL_PROJECTION);       // Select The Projection Matrix
 		gl.glLoadIdentity(); 					  // Reset the view matrix to the identity matrix
-		glu.gluPerspective(45.0,1.25,2.0,2 + CAMERA_DISTANCE);// Specify the projection matrix (fov, w/h, near plane, far plane)
+		glu.gluPerspective(45.0,1.25,2.0,15 + CAMERA_DISTANCE); // Specify the projection matrix (fov, w/h, near plane, far plane)
 
 		gl.glMatrixMode(GL_MODELVIEW);
 		gl.glLoadIdentity();
@@ -85,14 +90,17 @@ public class Main extends GLCanvas implements GLEventListener{
 		gl.glEnd();
 	}
 
-	/* Draw one triangle   */
-	public void drawGLScene(GLAutoDrawable glDrawable)  {
-		GL2 gl = glDrawable.getGL().getGL2();//GL gl = glDrawable.getGL(); TOMAS
-		gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //Clear The Screen And The Depth Buffer
-		gl.glLoadIdentity(); // Reset The View matrix
-		gl.glTranslatef(0, 0.0f, -CAMERA_DISTANCE); // Move Left 1.5 Units and into The Screen 8 units
+	private void resetGl(GL2 gl) {
+		gl.glLoadIdentity();
+		gl.glTranslatef(0, 0.0f, -CAMERA_DISTANCE);
+		glu.gluLookAt(1.5, 1, 1, 0.75, 0.25, -0.5, 0, 1, 0);
 		gl.glPointSize(5);
 		gl.glLineWidth(2.5f);
+	}
+
+	/* Draw one triangle   */
+	public void drawShapes(GL2 gl)  {
+		resetGl(gl);
 
 		gl.glTranslatef(-7.5f, 5, 0);
 		gl.glColor3f(0,0,1);
@@ -126,7 +134,7 @@ public class Main extends GLCanvas implements GLEventListener{
 		gl.glColor3f(0.5f, 0.5f, 0.5f);
 		drawPoints(gl, GL_QUADS);
 
-		gl.glTranslatef(-10, -5, 0);
+		gl.glTranslatef(-15, -5, 0);
 		gl.glColor3f(0.5f, 0, 0.5f);
 		drawPoints(gl, GL_QUAD_STRIP);
 
@@ -135,14 +143,56 @@ public class Main extends GLCanvas implements GLEventListener{
 		drawPoints(gl, GL_POLYGON);
 	}
 
+	private static void drawCubeSideA(GL2 gl, boolean directionAxisZ, boolean rightOrFront) {
+		double direction = directionAxisZ ? 1 : -1;
+		double side = rightOrFront ? 1 : -1;
+
+		gl.glVertex3d(side, -1, side);
+		gl.glVertex3d(side * direction,  -1, -side * direction);
+		gl.glVertex3d(side * direction, 1, - side * direction);
+		gl.glVertex3d(side, 1, side);
+	}
+
+	private void drawCubeA(GL2 gl) {
+		resetGl(gl);
+		gl.glTranslated(5, -5, 0);
+		gl.glRotated(30, 0, 0, 1);
+		gl.glScaled(0.75, 0.75, 0.75);
+		gl.glColor3d(1, 0, 1);
+
+		Stream.of(true, false).forEach(rightOrFront ->
+				Stream.of(true, false).forEach(directionAxisZ -> {
+					gl.glBegin(GL_LINE_LOOP);
+					drawCubeSideA(gl, directionAxisZ, rightOrFront);
+
+					gl.glEnd();
+				})
+		);
+
+	}
+
+	private void drawCubeB(GL2 gl) {
+		resetGl(gl);
+		gl.glScaled(0.75, 0.75, 0.75);
+		gl.glRotated(30, 0, 0, 1);
+		gl.glTranslated(5, -5, 0);
+		gl.glColor3d(0, 1, 1);
+		glut.glutWireCube(2);
+	}
 
 	/** void display() Draw to the canvas. */
 	/* Purely a Java thing. Simple calls drawGLScene once GL is initialized */
 	@Override
 	public void display(GLAutoDrawable glDrawable) {
 		LOGGER.info("display()");
-		drawGLScene(glDrawable); // Calls drawGLScene
+		GL2 gl = glDrawable.getGL().getGL2();//GL gl = glDrawable.getGL(); TOMAS
+		gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //Clear The Screen And The Depth Buffer
 
+		drawShapes(gl);
+
+		// Both cubes are drawn in the same location, with the same transformations, but in different order
+		drawCubeA(gl);
+		drawCubeB(gl);
 	}
 
 	public static void main(String[] args){
@@ -153,7 +203,7 @@ public class Main extends GLCanvas implements GLEventListener{
 		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE); // Close app with "x" button
 		frame.getContentPane().add(canvas);
 
-		frame.setTitle("Eksempel 1 - JOGL 2");
+		frame.setTitle("Exercise 1 + 2");
 		frame.pack();
 		frame.setVisible(true);
 	}
