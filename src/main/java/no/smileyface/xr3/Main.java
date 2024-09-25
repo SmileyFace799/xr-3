@@ -42,7 +42,7 @@ public class Main extends GLCanvas implements GLEventListener{
 	private final transient Cube cubeModel;
 	private final transient Random random;
 
-	private RotationInfo rotationInfo;
+	private transient RotationInfo rotationInfo;
 	private double rotationAngle;
 
 	/**
@@ -65,7 +65,7 @@ public class Main extends GLCanvas implements GLEventListener{
 				cubeModel.rotate(rotationInfo.axis(), rotationInfo.slice(), rotationInfo.clockwise());
 				rotationAngle = rotationInfo.clockwise() ? 90 : -90;
 			}
-		}, 1, 3, TimeUnit.SECONDS);
+		}, 1, 1, TimeUnit.SECONDS);
 	}
 
 	public void init(GLAutoDrawable glDrawable) {
@@ -147,7 +147,7 @@ public class Main extends GLCanvas implements GLEventListener{
 			gl.glLoadIdentity();
 			glu.gluLookAt(10, 10, 10, 0, 0, 0, 0, 1, 0);
 			gl.glTranslated((double) CUBE_SIZE / 2, (double) CUBE_SIZE / 2, (double) CUBE_SIZE / 2);
-			double angleX = 0; // (entry.x() == 1 ? frameCount*0.5 : 0) % 360;;
+			double angleX = 0;
 			double angleY = 0;
 			double angleZ = 0;
 			if (rotationInfo != null) {
@@ -157,7 +157,7 @@ public class Main extends GLCanvas implements GLEventListener{
 					case Z -> angleZ = entry.z() == rotationInfo.slice() ? (rotationAngle + 360) % 360 : 0;
 				}
 				synchronized (this) {
-					rotationAngle += rotationAngle > 0 ? -0.01 : 0.01;
+					rotationAngle += rotationAngle > 0 ? -0.02 : 0.02;
 					if (rotationAngle == 0) {
 						rotationInfo = null;
 					}
